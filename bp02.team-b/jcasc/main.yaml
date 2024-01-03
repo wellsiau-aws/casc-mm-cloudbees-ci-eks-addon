@@ -1,0 +1,4 @@
+unclassified:
+  hibernationConfiguration:
+    enabled: true
+    gracePeriod: 1800

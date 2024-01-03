@@ -1,0 +1,42 @@
+
+beekeeper:
+  enabled: true
+  securityWarnings:
+    enabledForCore: true
+    enabledForPlugins: true
+  upgrades:
+    autoDowngradePlugins: false
+    autoUpgradePlugins: true
+unclassified:
+  timestamper:
+    allPipelines: true
+  buildDiscarders:
+    configuredBuildDiscarders:
+      - "jobBuildDiscarder"
+      - simpleBuildDiscarder:
+          discarder:
+            logRotator:
+              numToKeepStr: "3"
+kube:
+  podTemplatesConfiguration:
+    templates:
+      - containers:
+          - args: "cat"
+            command: "/bin/sh -c"
+            image: "maven:3.8.1-jdk-8"
+            name: "maven"
+            ttyEnabled: true
+            workingDir: "/home/jenkins/agent"
+        label: "maven"
+        name: "maven"
+        nodeSelector: "ci_type=build-linux"
+        nodeUsageMode: NORMAL
+        yaml: |-
+          apiVersion: v1
+          kind: Pod
+          spec:
+            tolerations:
+              - key: "dedicated"
+                operator: "Equal"
+                value: "build-linux"
+                effect: "NoSchedule"
