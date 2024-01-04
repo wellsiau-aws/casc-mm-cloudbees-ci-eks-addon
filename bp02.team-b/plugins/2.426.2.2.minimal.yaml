@@ -1,3 +1,2 @@
 plugins:
-  - id: cloudbees-github-reporting
   - id: managed-master-hibernation

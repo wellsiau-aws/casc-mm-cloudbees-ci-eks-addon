@@ -1,11 +1,11 @@
 apiVersion: "1"
-id: "bp02.team-b"
-description: "Casc Bundle for Team B"
+id: "modern.load-boy"
+description: "Casc Bundle for Load Controllers"
 version: "1"
 parent: "bp02.parent"
 allowCapExceptions: true
 jcascMergeStrategy: "errorOnConflict"
-jcasc:
-  - jcasc
 plugins:
   - plugins
+catalog:
+  - catalog
