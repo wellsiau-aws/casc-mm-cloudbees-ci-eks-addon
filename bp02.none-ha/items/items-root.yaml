@@ -1,0 +1,32 @@
+removeStrategy:
+  rbac: SYNC
+  items: NONE
+items:
+- kind: pipeline
+  name: pipeline-3
+  concurrentBuild: true
+  definition:
+    cpsFlowDefinition:
+      sandbox: true
+      script: |-
+        pipeline {
+            agent {
+                label 'maven'
+            }
+            stages {
+                stage('Main') {
+                    steps {
+                        git 'https://github.com/jglick/simple-maven-project-with-tests'
+                        readCache name: 'maven-2'
+                        container('maven') {
+                          sh 'mvn clean verify -Dmaven.repo.local=./maven-repo -DskipTests'
+                        }
+                        writeCache name: 'maven-2', includes: 'maven-repo/**'
+                    }
+                }
+            }
+        }
+  description: ''
+  disabled: false
+  displayName: pipeline-3
+  resumeBlocked: false

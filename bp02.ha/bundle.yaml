@@ -5,6 +5,8 @@ version: "1"
 parent: "bp02.parent"
 allowCapExceptions: true
 jcascMergeStrategy: "errorOnConflict"
+jcasc:
+  - jcasc
 plugins:
   - plugins
 items:

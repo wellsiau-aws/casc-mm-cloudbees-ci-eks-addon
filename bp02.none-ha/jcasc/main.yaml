@@ -2,3 +2,5 @@ unclassified:
   hibernationConfiguration:
     enabled: true
     gracePeriod: 1800
+  globalDefaultFlowDurabilityLevel:
+    durabilityHint: PERFORMANCE_OPTIMIZED

@@ -7,14 +7,14 @@ items:
   definition:
     cpsFlowDefinition:
       sandbox: true
-      script: |
+      script: |-
         input 'Proceed?'
 - kind: pipeline
   name: uses-agents
   definition:
     cpsFlowDefinition:
       sandbox: true
-      script: |
+      script: |-
         parallel([0, 1].collectEntries {b -> ["branch-$b", {
           podTemplate {
             node(POD_LABEL) {
@@ -38,7 +38,7 @@ items:
   definition:
     cpsFlowDefinition:
       sandbox: true
-      script: |
+      script: |-
         podTemplate {
           node(POD_LABEL) {
             stage('beginning') {
