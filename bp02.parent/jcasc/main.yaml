@@ -17,20 +17,20 @@ unclassified:
           discarder:
             logRotator:
               numToKeepStr: "3"
-  artifactManager:
-    artifactManagerFactories:
-    - jclouds:
-        provider: "s3"
-  workspaceCache:
-    cacheManager: "s3"
-aws:
-  s3:
-    container: "cbci-bp02-s3"
-    disableSessionToken: false
-    prefix: "cbci/"
-    useHttp: false
-    usePathStyleUrl: false
-    useTransferAcceleration: false
+#   artifactManager:
+#     artifactManagerFactories:
+#     - jclouds:
+#         provider: "s3"
+#   workspaceCache:
+#     cacheManager: "s3"
+# aws:
+#   s3:
+#     container: "cbci-bp02-s3"
+#     disableSessionToken: false
+#     prefix: "cbci/"
+#     useHttp: false
+#     usePathStyleUrl: false
+#     useTransferAcceleration: false
 kube:
   podTemplatesConfiguration:
     templates:
