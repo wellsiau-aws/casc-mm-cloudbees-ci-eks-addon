@@ -25,7 +25,7 @@ unclassified:
     cacheManager: "s3"
 aws:
   s3:
-    container: "cbci-bp02-s3"
+    container: ${cbci_s3}
     disableSessionToken: false
     prefix: "cbci/"
     useHttp: false
