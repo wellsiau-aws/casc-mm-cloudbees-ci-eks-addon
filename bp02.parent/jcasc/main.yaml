@@ -17,6 +17,20 @@ unclassified:
           discarder:
             logRotator:
               numToKeepStr: "3"
+  artifactManager:
+    artifactManagerFactories:
+    - jclouds:
+        provider: "s3"
+  workspaceCache:
+    cacheManager: "s3"
+aws:
+  s3:
+    container: "cbci-bp02-s3"
+    disableSessionToken: false
+    prefix: "cbci/"
+    useHttp: false
+    usePathStyleUrl: false
+    useTransferAcceleration: false
 kube:
   podTemplatesConfiguration:
     templates:
@@ -27,8 +41,8 @@ kube:
             name: "maven"
             ttyEnabled: true
             workingDir: "/home/jenkins/agent"
-        label: "maven"
-        name: "maven"
+        label: "maven-jdk-8"
+        name: "maven-jdk-8"
         nodeSelector: "ci_type=build-linux"
         nodeUsageMode: NORMAL
         yaml: |-
@@ -39,4 +53,24 @@ kube:
               - key: "dedicated"
                 operator: "Equal"
                 value: "build-linux"
+                effect: "NoSchedule"
+      - containers:
+          - args: "cat"
+            command: "/bin/sh -c"
+            image: "maven:3.8.1-jdk-8"
+            name: "maven"
+            ttyEnabled: true
+            workingDir: "/home/jenkins/agent"
+        label: "maven-jdk-8-spot"
+        name: "maven-jdk-8-spot"
+        nodeSelector: "ci_type=build-linux-spot"
+        nodeUsageMode: NORMAL
+        yaml: |-
+          apiVersion: v1
+          kind: Pod
+          spec:
+            tolerations:
+              - key: "dedicated"
+                operator: "Equal"
+                value: "build-linux-spot"
                 effect: "NoSchedule"

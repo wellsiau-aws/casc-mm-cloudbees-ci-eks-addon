@@ -3,30 +3,105 @@ removeStrategy:
   items: NONE
 items:
 - kind: pipeline
-  name: pipeline-3
-  concurrentBuild: true
+  name: copy-artifacts
   definition:
     cpsFlowDefinition:
       sandbox: true
-      script: |-
+      script: |
         pipeline {
             agent {
-                label 'maven'
+                label 'maven-jdk8'
+            }
+            environment {
+                ARTIFACT_SOURCE_JOB = 'publish-artifact'
             }
             stages {
-                stage('Main') {
+                stage('Copy Artifacts') {
                     steps {
-                        git 'https://github.com/jglick/simple-maven-project-with-tests'
-                        readCache name: 'maven-2'
-                        container('maven') {
-                          sh 'mvn clean verify -Dmaven.repo.local=./maven-repo -DskipTests'
-                        }
-                        writeCache name: 'maven-2', includes: 'maven-repo/**'
+                        sh 'ls -la'
+                        copyArtifacts fingerprintArtifacts: true, projectName: env.ARTIFACT_SOURCE_JOB, selector: lastSuccessful()
+                    }
+                }
+                stage('Read Artifacts') {
+                    steps {
+                        sh 'ls -la'
+                        sh 'cat f_2'
                     }
                 }
             }
         }
-  description: ''
-  disabled: false
-  displayName: pipeline-3
-  resumeBlocked: false
+- kind: pipeline
+  name: publish-artifact
+  definition:
+    cpsFlowDefinition:
+      sandbox: true
+      script: "pipeline { \n    agent {\n        kubernetes {\n            retries\
+        \ 2\n            defaultContainer 'golang'\n            yaml '''\napiVersion:\
+        \ v1\nkind: Pod\nspec:\n    containers:\n    - name: golang\n      image:\
+        \ golang:1.16.5\n      command:\n      - sleep\n      args:\n      - 99d\n\
+        \    - name: busybox\n      image: busybox\n      command:\n      - cat\n\
+        \      tty: true\n'''\n        }\n    }\n    stages {\n        stage('Golang')\
+        \ {\n            stages {\n                stage ('Build'){\n            \
+        \        steps {\n                        sh '''\n                       \
+        \     echo 'Build number ^${BUILD_NUMBER}' >> f_1'\n                     \
+        \       go version >> f_1\n                        '''\n                 \
+        \   }\n                }\n                stage ('Archive f_1'){\n       \
+        \             steps {\n                        archiveArtifacts artifacts:\
+        \ 'f_1', fingerprint: true\n                    }\n                }\n   \
+        \         }\n        }\n        stage('Busybox') {\n            stages {\n\
+        \                stage (\"Unarchive\"){\n                    steps {\n   \
+        \                     container('busybox') {\n                           \
+        \ dir ('unarchive'){\n                                sh 'ls -la'\n      \
+        \                          unarchive mapping: [f_1: 'f_1']\n             \
+        \                   sh 'ls -la; cat f_1; mv f_1 f_2'\n                   \
+        \         }\n                        }\n                    }\n          \
+        \      }\n                stage ('Build'){\n                    steps {\n\
+        \                        container('busybox') {\n                        \
+        \    dir ('unarchive'){\n                                sh 'cat f_2; echo\
+        \ hola >> f_2'\n                            }\n                        }\n\
+        \                    }\n                }\n                stage ('Archive\
+        \ f_2'){\n                    steps {\n                        container('busybox')\
+        \ {\n                            dir ('unarchive'){\n                    \
+        \            archiveArtifacts artifacts: 'f_2', fingerprint: true\n      \
+        \                      }\n                        }\n                    }\n\
+        \                }\n            }\n        }\n    }\n}"
+- kind: pipeline
+  name: ws-cache
+  concurrentBuild: true
+  definition:
+    cpsFlowDefinition:
+      sandbox: true
+      script: |
+        pipeline {
+            agent {
+                label 'maven-jdk8'
+            }
+            environment {
+                MAVEN_PROJECT = 'https://github.com/jglick/simple-maven-project-with-tests'
+                CACHE = 'ws-cache-maven'
+            }
+            stages {
+                stage('Checkout') {
+                    steps {
+                        git env.MAVEN_PROJECT
+                    }
+                }
+                stage('Read') {
+                    steps {
+                        readCache name: env.CACHE
+                    }
+                }
+                stage('Build') {
+                    steps {
+                        container('maven') {
+                          sh 'mvn clean package -DskipTests -Dmaven.repo.local=./maven-repo'
+                        }
+                    }
+                }
+            }
+            post {
+                success {
+                    writeCache name: env.CACHE, includes: 'maven-repo/**'
+                }
+            }
+        }
