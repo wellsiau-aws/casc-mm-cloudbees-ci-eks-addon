@@ -3,6 +3,22 @@ removeStrategy:
   items: NONE
 items:
 - kind: pipeline
+  name: build-storm
+  concurrentBuild: true
+  definition:
+    cpsFlowDefinition:
+      sandbox: true
+      script: |-
+        def count = 1
+        def numberOfBuilds = 100
+        def targetPipeline = 'uses-agents'
+
+        while (count <= numberOfBuilds) {
+            println("Launching Build Number: ^${count}")
+            build wait: false, job: targetPipeline
+            count++
+        }
+- kind: pipeline
   name: easily-resumable
   definition:
     cpsFlowDefinition:
@@ -44,7 +60,7 @@ items:
             stage('beginning') {
               sh 'sleep 30'
               sh 'date > date.txt'
-              stash name: 'stuff', includes: 'date.txt'
+              archiveArtifacts artifacts: 'date', fingerprint: true
             }
           }
         }
@@ -52,9 +68,11 @@ items:
         podTemplate {
           node(POD_LABEL) {
             stage('end') {
-              unstash 'stuff'
-              sh 'cat date.txt'
-              sh 'sleep 1h'
+              dir ('unarchive'){
+                unarchive mapping: [date: 'date.txt']
+                sh 'cat date.txt'
+                sh 'sleep 1h'
+              }
             }
           }
         }
