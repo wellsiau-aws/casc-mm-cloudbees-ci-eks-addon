@@ -1,5 +1,6 @@
 plugins:
   - id: artifact-manager-s3
+  - id: audit-trail
   - id: bootstrap4-api
   - id: cloudbees-aborted-builds
   - id: cloudbees-casc-client
