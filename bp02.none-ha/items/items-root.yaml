@@ -9,37 +9,39 @@ items:
     cpsFlowDefinition:
       sandbox: true
       script: |-
-        def retryCount = 0
         pipeline {
-            agent {
-                label 'maven-jdk-8-spot'
-                retries 2
+            agent{
+                label {
+                    label 'maven-jdk-8-spot'
+                    retries 3
+                }
             }
             environment {
-                ARTIFACT_SOURCE_JOB = 'upstream-artifact'
-            }
-            options { 
-                retry(3) 
+                MAVEN_PROJECT = 'https://github.com/jglick/simple-maven-project-with-tests'
+                CACHE = 'ws-cache-maven'
             }
             stages {
-                stage('Retry Counter') {
+                stage('Checkout') {
                     steps {
-                        script {
-                            retryCount += 1
+                        git env.MAVEN_PROJECT
+                    }
+                }
+                stage('Read') {
+                    steps {
+                        readCache name: env.CACHE
+                    }
+                }
+                stage('Build') {
+                    steps {
+                        container('maven') {
+                        sh 'mvn clean package -DskipTests -Dmaven.repo.local=./maven-repo'
                         }
                     }
                 }
-                stage('Copy Artifacts') {
-                    steps {
-                        sh 'ls -la'
-                        copyArtifacts fingerprintArtifacts: true, projectName: env.ARTIFACT_SOURCE_JOB, selector: lastSuccessful()
-                    }
-                }
-                stage('Read Artifacts') {
-                    steps {
-                        sh 'ls -la'
-                        sh 'cat f_2'
-                    }
+            }
+            post {
+                success {
+                    writeCache name: env.CACHE, includes: 'maven-repo/**'
                 }
             }
         }
@@ -57,7 +59,7 @@ items:
         pipeline {
             agent {
                 kubernetes {
-                    retries 2
+                    retries 3
                     defaultContainer 'golang'
                     yaml '''
         apiVersion: v1
@@ -140,25 +142,18 @@ items:
     cpsFlowDefinition:
       sandbox: true
       script: |-
-        def retryCount = 0
-
         pipeline {
-            agent {
-                label 'maven-jdk-8-spot'
-                retries 2
-            }
+            agent{
+                label {
+                    label 'maven-jdk-8-spot'
+                    retries 3
+                }
+            } 
             environment {
                 MAVEN_PROJECT = 'https://github.com/jglick/simple-maven-project-with-tests'
                 CACHE = 'ws-cache-maven'
             }
             stages {
-                stage('Retry Counter') {
-                    steps {
-                        script {
-                            retryCount += 1
-                        }
-                    }
-                }
                 stage('Checkout') {
                     steps {
                         git env.MAVEN_PROJECT
@@ -172,7 +167,7 @@ items:
                 stage('Build') {
                     steps {
                         container('maven') {
-                        sh 'mvn clean package -DskipTests -Dmaven.repo.local=./maven-repo'
+                            sh 'mvn clean package -DskipTests -Dmaven.repo.local=./maven-repo'
                         }
                     }
                 }
