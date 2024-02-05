@@ -23,6 +23,9 @@ unclassified:
         provider: "s3"
   workspaceCache:
     cacheManager: "s3"
+  hibernationConfiguration:
+    enabled: true
+    gracePeriod: 1800
 aws:
   s3:
     container: ${cbci_s3}
