@@ -46,8 +46,8 @@ kube:
             workingDir: "/home/jenkins/agent"
           - args: "99d"
             command: "sleep"
-            image: "maven:3.8.1-jdk-8"
-            name: "maven"
+            image: "go:alpine3.19"
+            name: "go"
             ttyEnabled: true
             workingDir: "/home/jenkins/agent"  
         label: "maven-and-go-ondemand"
