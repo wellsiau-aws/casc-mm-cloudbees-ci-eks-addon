@@ -12,7 +12,7 @@ items:
         pipeline {
             agent{
                 label {
-                    label 'maven-jdk-8-spot'
+                    label 'maven-spot'
                     retries 3
                 }
             }
@@ -34,7 +34,7 @@ items:
                 stage('Build') {
                     steps {
                         container('maven') {
-                        sh 'mvn clean package -DskipTests -Dmaven.repo.local=./maven-repo'
+                            sh 'mvn clean package -DskipTests -Dmaven.repo.local=./maven-repo'
                         }
                     }
                 }
@@ -57,27 +57,10 @@ items:
       sandbox: true
       script: |-
         pipeline {
-            agent {
-                kubernetes {
+            agent{
+                label {
+                    label 'maven-and-go-ondemand'
                     retries 3
-                    defaultContainer 'golang'
-                    yaml '''
-        apiVersion: v1
-        kind: Pod
-        spec:
-            containers:
-            - name: golang
-              image: golang:1.16.5
-              command:
-              - sleep
-              args:
-              - 99d
-            - name: busybox
-              image: busybox
-              command:
-              - cat
-              tty: true
-        '''
                 }
             }
             stages {
@@ -85,15 +68,19 @@ items:
                     stages {
                         stage ('Build'){
                             steps {
-                                sh '''
-                                    echo "Build number ^${BUILD_NUMBER}" >> f_1
-                                    go version >> f_1
-                                '''
+                                container('go') {
+                                    sh '''
+                                        echo "Build number ${BUILD_NUMBER}" >> f_1
+                                        go version >> f_1
+                                    '''
+                                }
                             }
                         }
                         stage ('Archive f_1'){
                             steps {
-                                archiveArtifacts artifacts: 'f_1', fingerprint: true
+                                container('go') {
+                                    archiveArtifacts artifacts: 'f_1', fingerprint: true
+                                }
                             }
                         }
                     }
@@ -102,7 +89,7 @@ items:
                     stages {
                         stage ("Unarchive"){
                             steps {
-                                container('busybox') {
+                                container('maven') {
                                     dir ('unarchive'){
                                         sh 'ls -la'
                                         unarchive mapping: [f_1: 'f_1']
@@ -113,16 +100,16 @@ items:
                         }
                         stage ('Build'){
                             steps {
-                                container('busybox') {
+                                container('maven') {
                                     dir ('unarchive'){
-                                        sh '/bin/busybox >> f_2'
+                                        sh 'mvn -version >> f_2'
                                     }
                                 }
                             }
                         }
                         stage ('Archive f_2'){
                             steps {
-                                container('busybox') {
+                                container('maven') {
                                     dir ('unarchive'){
                                         archiveArtifacts artifacts: 'f_2', fingerprint: true
                                     }
@@ -145,7 +132,7 @@ items:
         pipeline {
             agent{
                 label {
-                    label 'maven-jdk-8-spot'
+                    label 'maven-spot'
                     retries 3
                 }
             } 

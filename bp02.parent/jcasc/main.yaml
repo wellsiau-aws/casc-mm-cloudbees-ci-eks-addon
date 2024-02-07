@@ -38,14 +38,20 @@ kube:
   podTemplatesConfiguration:
     templates:
       - containers:
-          - args: "cat"
-            command: "/bin/sh -c"
+          - args: "99d"
+            command: "sleep"
             image: "maven:3.8.1-jdk-8"
             name: "maven"
             ttyEnabled: true
             workingDir: "/home/jenkins/agent"
-        label: "maven-jdk-8"
-        name: "maven-jdk-8"
+          - args: "99d"
+            command: "sleep"
+            image: "maven:3.8.1-jdk-8"
+            name: "maven"
+            ttyEnabled: true
+            workingDir: "/home/jenkins/agent"  
+        label: "maven-and-go-ondemand"
+        name: "maven-and-go-ondemand"
         nodeSelector: "ci_type=build-linux"
         nodeUsageMode: NORMAL
         yaml: |-
@@ -58,14 +64,14 @@ kube:
                 value: "build-linux"
                 effect: "NoSchedule"
       - containers:
-          - args: "cat"
-            command: "/bin/sh -c"
+          - args: "99d"
+            command: "sleep"
             image: "maven:3.8.1-jdk-8"
             name: "maven"
             ttyEnabled: true
             workingDir: "/home/jenkins/agent"
-        label: "maven-jdk-8-spot"
-        name: "maven-jdk-8-spot"
+        label: "maven-spot"
+        name: "maven-spot"
         nodeSelector: "ci_type=build-linux-spot"
         nodeUsageMode: NORMAL
         yaml: |-

@@ -3,29 +3,13 @@ removeStrategy:
   items: NONE
 items:
 - kind: pipeline
-  name: build-storm
-  concurrentBuild: true
-  definition:
-    cpsFlowDefinition:
-      sandbox: true
-      script: |-
-        def count = 1
-        def numberOfBuilds = 100
-        def targetPipeline = 'uses-agents'
-
-        while (count <= numberOfBuilds) {
-            println("Launching Build Number: ^${count}")
-            build wait: false, job: targetPipeline
-            count++
-        }
-- kind: pipeline
-  name: uses-agents
+  name: mockLoad
   definition:
     cpsFlowDefinition:
       sandbox: true
       script: |-
         parallel([0, 1].collectEntries {b -> ["branch-$b", {
-          podTemplate {
+          podTemplate  (inheritFrom: 'maven-and-go-ondemand') {
             node(POD_LABEL) {
               stage('prep') {
                 sh 'curl https://ipinfo.io/'
@@ -48,7 +32,7 @@ items:
     cpsFlowDefinition:
       sandbox: true
       script: |-
-        podTemplate {
+        podTemplate (inheritFrom: 'maven-and-go-ondemand') {
           node(POD_LABEL) {
             stage('beginning') {
               sh 'sleep 30'
@@ -58,7 +42,7 @@ items:
           }
         }
         checkpoint 'middle'
-        podTemplate {
+        podTemplate (inheritFrom: 'maven-spot') {
           node(POD_LABEL) {
             stage('end') {
               dir ('unarchive'){
