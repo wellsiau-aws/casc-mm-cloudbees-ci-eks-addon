@@ -19,13 +19,6 @@ items:
             count++
         }
 - kind: pipeline
-  name: easily-resumable
-  definition:
-    cpsFlowDefinition:
-      sandbox: true
-      script: |-
-        input 'Proceed?'
-- kind: pipeline
   name: uses-agents
   definition:
     cpsFlowDefinition:
